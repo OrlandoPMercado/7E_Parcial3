@@ -1,0 +1,70 @@
+import json
+from tkinter import Tk, Label, Button, Checkbutton, IntVar, messagebox
+
+# Datos del sistema experto
+data = {
+    "questions": [
+        "¿Enciende el tablero?",
+        "¿El carro da marcha?",
+        "¿Hay presión en el riel de inyección?",
+        "¿Llega señal a la chispa?",
+        "¿Se mueve la mariposa de admisión?"
+    ],
+    "diagnoses": {
+        "Batería muerta": [False, False, False, False, False],
+        "Marcha averiada": [True, False, True, True, True],
+        "Bomba averiada": [True, True, False, True, True],
+        "Bujías dañadas": [True, True, True, False, True],
+        "Mariposa dañada": [True, True, True, True, False],
+        "Sensor CKP dañado": [True, False, True, False, False]
+    }
+}
+
+# Guardar datos en un archivo JSON
+with open("diagnostico_automotriz.json", "w") as file:
+    json.dump(data, file)
+
+# Cargar datos desde el archivo JSON
+def load_data():
+    with open("diagnostico_automotriz.json", "r") as file:
+        return json.load(file)
+
+# Función para determinar diagnóstico
+def determine_diagnosis(answers, diagnoses):
+    for diagnosis, pattern in diagnoses.items():
+        if answers == pattern:
+            return diagnosis
+    return "No se encontró un diagnóstico correspondiente."
+
+# Clase de la interfaz gráfica
+class DiagnosticApp:
+    def __init__(self, root):
+        self.data = load_data()
+        self.root = root
+        self.root.title("Sistema Experto de Diagnóstico Automotriz")
+
+        self.welcome_label = Label(root, text="Bienvenido al sistema experto de diagnóstico automotriz:\nPor favor ingrese su problema.", font=("Arial", 14), pady=10)
+        self.welcome_label.pack()
+
+        self.answers = [IntVar() for _ in self.data["questions"]]
+
+        self.checklist_frame = Label(root, text="Responda las siguientes preguntas marcando las casillas correspondientes:", font=("Arial", 12), pady=10)
+        self.checklist_frame.pack()
+
+        for i, question in enumerate(self.data["questions"]):
+            Checkbutton(root, text=question, variable=self.answers[i], font=("Arial", 12), pady=5).pack(anchor="w")
+
+        self.submit_button = Button(root, text="Obtener Diagnóstico", command=self.complete_diagnosis, font=("Arial", 12), pady=10)
+        self.submit_button.pack()
+
+    def complete_diagnosis(self):
+        answers = [bool(var.get()) for var in self.answers]
+        diagnosis = determine_diagnosis(answers, self.data["diagnoses"])
+        messagebox.showinfo("Diagnóstico", f"Resultado del diagnóstico: {diagnosis}")
+        self.root.destroy()
+
+# Iniciar la aplicación
+if __name__ == "__main__":
+    root = Tk()
+    app = DiagnosticApp(root)
+    root.mainloop()
